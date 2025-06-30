@@ -1,0 +1,41 @@
+{
+  "name": "philosophical-life-advice-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "clean": "rm -rf .next",
+    "dev:clean": "npm run clean && npm run dev",
+    "telemetry:disable": "next telemetry disable",
+    "telemetry:status": "next telemetry status",
+    "dev:all": "concurrently \"next dev\" \"cd ../src && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000\""
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "clsx": "^2.0.0",
+    "html2pdf.js": "^0.10.3",
+    "lucide-react": "^0.294.0",
+    "next": "14.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-markdown": "^10.1.0",
+    "tailwind-merge": "^2.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.16",
+    "@types/node": "^20.9.0",
+    "@types/react": "^18.2.37",
+    "@types/react-dom": "^18.2.15",
+    "autoprefixer": "^10.4.16",
+    "concurrently": "^9.2.0",
+    "eslint": "^8.53.0",
+    "eslint-config-next": "14.0.0",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.3.5",
+    "typescript": "^5.2.2"
+  }
+}

@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 26% 97%; /* Off-white */
+    --foreground: 222 47% 11%; /* Deep navy text */
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 221 39% 23%; /* Deep navy */
+    --primary-foreground: 47 95% 53%; /* Soft gold */
+    --secondary: 210 16% 82%; /* Subtle slate */
+    --secondary-foreground: 221 39% 23%;
+    --muted: 210 16% 92%;
+    --muted-foreground: 221 39% 40%;
+    --accent: 47 95% 53%; /* Soft gold */
+    --accent-foreground: 221 39% 23%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 221 39% 85%; /* Softer border color */
+    --input: 221 39% 85%;
+    --ring: 47 95% 53%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 221 39% 15%; /* Deep navy dark */
+    --foreground: 47 95% 90%; /* Soft gold light */
+    --card: 221 39% 18%;
+    --card-foreground: 47 95% 90%;
+    --popover: 221 39% 18%;
+    --popover-foreground: 47 95% 90%;
+    --primary: 47 95% 53%; /* Soft gold */
+    --primary-foreground: 221 39% 23%; /* Deep navy */
+    --secondary: 221 39% 23%;
+    --secondary-foreground: 47 95% 90%;
+    --muted: 221 39% 23%;
+    --muted-foreground: 47 95% 53%;
+    --accent: 47 95% 53%;
+    --accent-foreground: 221 39% 23%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 47 95% 90%;
+    --border: 221 39% 30%; /* Softer border color for dark mode */
+    --input: 221 39% 30%;
+    --ring: 47 95% 53%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .gradient-text {
+    @apply bg-gradient-to-r from-yellow-400 via-slate-700 to-blue-900 bg-clip-text text-transparent;
+  }
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground transition-colors;
+  }
+  .btn-accent {
+    @apply bg-accent text-accent-foreground hover:bg-accent/90 hover:text-accent-foreground transition-colors;
+  }
+  .btn-outline {
+    @apply border border-border bg-background hover:bg-secondary hover:text-foreground transition-colors;
+  }
+  .glass-card {
+    @apply backdrop-blur-sm bg-white/80 border border-border shadow-xl;
+  }
+  .select-modern {
+    @apply p-3 border border-border rounded-lg bg-background text-foreground shadow-sm focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-200 appearance-none;
+    background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 8L10 12L14 8' stroke='%234B5563' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1.25em 1.25em;
+    padding-right: 2.5rem;
+  }
+  .select-modern:hover, .select-modern:focus {
+    @apply border-primary ring-2 ring-primary bg-primary/5;
+  }
+}
