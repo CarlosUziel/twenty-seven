@@ -15,6 +15,7 @@ from app.models import (
 from app.utils import get_perspectives
 from config.logger import logger
 from lm.utils import generate_answer, generate_conclusion
+from config.settings import settings
 
 app = FastAPI(title="The Council of the Twenty-Seven API")
 
@@ -39,7 +40,7 @@ def get_answer(req: QuestionRequest):
             status_code=400, detail="Question and perspective are required."
         )
     try:
-        answer, metadata = generate_answer(req.question, req.perspective)
+        answer, metadata = generate_answer(req.question, req.perspective, req.model)
         return AnswerResponse(
             perspective=req.perspective, answer=answer, metadata=metadata
         )
@@ -52,10 +53,16 @@ def get_answer(req: QuestionRequest):
 def get_conclusion(req: ConclusionRequest):
     """Generate a conclusion from multiple answers."""
     try:
-        conclusion = generate_conclusion(req.answers)
-        return ConclusionResponse(conclusion=conclusion)
+        conclusion, metadata = generate_conclusion(req.answers, req.model)
+        return ConclusionResponse(conclusion=conclusion, metadata=metadata)
     except Exception as exc:
         logger.error(f"Error generating conclusion: {exc}")
         raise HTTPException(
             status_code=500, detail="Error generating conclusion."
         ) from exc
+
+
+@app.get("/models", response_model=List[str])
+def list_models():
+    """Return a list of available LLM models."""
+    return settings.available_models

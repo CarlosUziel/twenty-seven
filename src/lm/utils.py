@@ -12,7 +12,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from pydantic import SecretStr
 
-from app.models import AnswerMetadata
+from app.models import AnswerMetadata, ConclusionMetadata
 from config.logger import logger
 from config.settings import settings
 
@@ -22,27 +22,33 @@ def remove_think_tags(text: str) -> str:
     return re.sub(r"<think>[\s\S]*?</think>", "", text, flags=re.IGNORECASE).strip()
 
 
-def get_llm() -> ChatOpenAI:
+def get_llm(model_name: str) -> ChatOpenAI:
     """
-    Get the custom LLM instance for generating answers.
+    Get the custom LLM instance for generating answers, using the provided model name.
+
+    Args:
+        model_name (str): The model name to use.
 
     Returns:
         ChatOpenAI: An instance of the OpenAI-compatible LLM client.
     """
     return ChatOpenAI(
         base_url=settings.lm_studio_endpoint,
-        model=settings.llm_model,
+        model=model_name,
         api_key=SecretStr("not-needed"),
     )
 
 
-def generate_answer(question: str, perspective: str) -> Tuple[str, AnswerMetadata]:
+def generate_answer(
+    question: str, perspective: str, model=None
+) -> Tuple[str, AnswerMetadata]:
     """
     Generate an answer to a question from a specific philosophical perspective, and return answer and metadata.
 
     Args:
         question (str): The user's question.
         perspective (str): The philosophical text to embody.
+        model (str, optional): The model to use. If not provided or invalid, use default.
 
     Returns:
         Tuple[str, AnswerMetadata]: The generated answer and its metadata.
@@ -56,7 +62,11 @@ def generate_answer(question: str, perspective: str) -> Tuple[str, AnswerMetadat
     )
     prompt_uuid = str(uuid4())
     temperature = 0.7  # Or get from settings/config if needed
-    model = settings.llm_model
+    model_name = (
+        model
+        if model in settings.available_models
+        else settings.available_models[0]
+    )
     prompt = textwrap.dedent(
         f"""You are answering a life question from the perspective of this specific philosophy:
 
@@ -83,7 +93,7 @@ def generate_answer(question: str, perspective: str) -> Tuple[str, AnswerMetadat
         HumanMessage(content=prompt),
     ]
     try:
-        llm = get_llm()
+        llm = get_llm(model_name)
         response = llm.invoke(messages)
         answer = remove_think_tags(str(response.content))
         output_tokens = getattr(response, "usage", {}).get("completion_tokens", None)
@@ -91,7 +101,7 @@ def generate_answer(question: str, perspective: str) -> Tuple[str, AnswerMetadat
             output_tokens = len(answer.split())
         metadata = AnswerMetadata(
             generationTime=datetime.utcnow().isoformat() + "Z",
-            model=model,
+            model=model_name,
             outputTokens=output_tokens,
             temperature=temperature,
             promptUUID=prompt_uuid,
@@ -103,22 +113,25 @@ def generate_answer(question: str, perspective: str) -> Tuple[str, AnswerMetadat
         raise RuntimeError(f"Failed to generate answer: {exc}") from exc
 
 
-def generate_conclusion(answers: Dict[str, str]) -> str:
+def generate_conclusion(answers: Dict[str, str], model=None) -> Tuple[str, ConclusionMetadata]:
     """
-    Generate a concluding summary of different answers.
+    Generate a conclusion from multiple answers, returning the conclusion and metadata.
 
     Args:
-        answers (Dict[str, str]): A dictionary of answers, with perspective
-            names as keys.
+        answers (Dict[str, str]): The answers from different perspectives.
+        model (str, optional): The model to use. If not provided or invalid, use default.
 
     Returns:
-        str: The generated conclusion.
+        Tuple[str, ConclusionMetadata]: The generated conclusion and its metadata.
 
     Raises:
         RuntimeError: If the conclusion generation fails.
     """
-    logger.info(f"Generating conclusion for {len(answers)} answers.")
-    answers_str = "\\n".join(
+    logger.info(f"Generating conclusion from {len(answers)} answers.")
+    prompt_uuid = str(uuid4())
+    temperature = 0.7
+    model_name = model if model in settings.available_models else settings.available_models[0]
+    answers_str = "\n".join(
         [f"- {perspective}: {answer}" for perspective, answer in answers.items()]
     )
     prompt = textwrap.dedent(
@@ -144,9 +157,21 @@ def generate_conclusion(answers: Dict[str, str]) -> str:
         HumanMessage(content=prompt),
     ]
     try:
-        llm = get_llm()
+        llm = get_llm(model_name)
         response = llm.invoke(messages)
-        return remove_think_tags(str(response.content))
+        conclusion = remove_think_tags(str(response.content))
+        output_tokens = getattr(response, "usage", {}).get("completion_tokens", None)
+        if output_tokens is None:
+            output_tokens = len(conclusion.split())
+        metadata = ConclusionMetadata(
+            generationTime=datetime.utcnow().isoformat() + "Z",
+            model=model_name,
+            outputTokens=output_tokens,
+            temperature=temperature,
+            promptUUID=prompt_uuid,
+            extra={},
+        )
+        return conclusion, metadata
     except Exception as exc:
         logger.error(f"Failed to generate conclusion: {exc}")
         raise RuntimeError(f"Failed to generate conclusion: {exc}") from exc

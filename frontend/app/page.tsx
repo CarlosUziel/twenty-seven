@@ -28,9 +28,12 @@ export default function Home() {
   const [isLoadingPerspectives, setIsLoadingPerspectives] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [exportFormat, setExportFormat] = useState('markdown');
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [selectedModel, setSelectedModel] = useState<string>('');
 
   useEffect(() => {
     loadPerspectives();
+    loadModels();
   }, []);
 
   useEffect(() => {
@@ -54,6 +57,19 @@ export default function Home() {
     }
   };
 
+  const loadModels = async () => {
+    // Fetch from backend endpoint (to be implemented if not present)
+    try {
+      const res = await fetch('/api/models');
+      const data = await res.json();
+      setAvailableModels(data);
+      if (data.length > 0) setSelectedModel(data[0]);
+    } catch (e) {
+      setAvailableModels(["deepseek/deepseek-r1-0528-qwen3-8b"]);
+      setSelectedModel("deepseek/deepseek-r1-0528-qwen3-8b");
+    }
+  };
+
   const handleSubmitQuestion = () => {
     if (question.trim()) {
       setIsQuestionSubmitted(true);
@@ -68,8 +84,12 @@ export default function Home() {
     setError(null);
 
     try {
-      const result = await apiService.getAnswer({ question, perspective: selectedPerspective });
-      setGeneratedAnswers(prev => new Map(prev).set(selectedPerspective, result));
+      const response = await apiService.getAnswer({
+        question,
+        perspective: selectedPerspective,
+        model: selectedModel,
+      });
+      setGeneratedAnswers(prev => new Map(prev).set(selectedPerspective, response));
       
       // Set active tab to the newly generated answer
       setActiveTab(selectedPerspective);
@@ -82,19 +102,18 @@ export default function Home() {
   };
 
   const generateConclusion = async () => {
-    if (generatedAnswers.size === 0) return;
-
     setIsGeneratingConclusion(true);
     setError(null);
-
     try {
-      const answersDict: Record<string, string> = {};
-      generatedAnswers.forEach((answer, perspective) => {
-        answersDict[perspective] = answer.answer;
+      const answersObj = Object.fromEntries(
+        Array.from(generatedAnswers.entries()).map(([k, v]) => [k, v.answer])
+      );
+      const response = await apiService.getConclusion({
+        answers: answersObj,
+        model: selectedModel,
       });
-
-      const result = await apiService.getConclusion({ answers: answersDict });
-      setConclusion(result.conclusion);
+      setConclusion(response.conclusion);
+      // Optionally store/display response.metadata
     } catch (error) {
       console.error('Failed to generate conclusion:', error);
       setError('Failed to generate philosophical synthesis. Please try again.');
@@ -306,15 +325,26 @@ export default function Home() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col md:flex-row gap-4 items-center">
+            <div className="flex flex-col md:flex-row gap-4 items-center mb-4">
               <div className="flex-1 w-full">
                 <select 
                   value={selectedPerspective}
                   onChange={(e) => setSelectedPerspective(e.target.value)}
-                  className="w-full rounded-lg border-none shadow-md bg-background text-foreground px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent transition-colors duration-200 appearance-none cursor-pointer hover:bg-primary/5"
+                  className="w-full rounded-lg border-none shadow-md bg-background text-foreground px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent transition-colors duration-200 appearance-none cursor-pointer hover:bg-primary/5 mb-2"
                 >
                   {perspectives.map((perspective) => (
                     <option key={perspective} value={perspective}>{perspective}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex-1 w-full">
+                <select
+                  value={selectedModel}
+                  onChange={e => setSelectedModel(e.target.value)}
+                  className="w-full select-modern mb-2"
+                >
+                  {availableModels.map((model) => (
+                    <option key={model} value={model}>{model}</option>
                   ))}
                 </select>
               </div>
@@ -421,20 +451,35 @@ export default function Home() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button 
-              onClick={generateConclusion}
-              disabled={isGeneratingConclusion}
-              className="w-full" // Remove explicit bg/text color
-            >
-              {isGeneratingConclusion ? (
-                <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full border-b-2 border-white h-4 w-4 mr-2"></div>
-                  <span>Generating synthesis...</span>
-                </div>
-              ) : (
-                `Generate synthesis from ${generatedAnswers.size} perspectives`
-              )}
-            </Button>
+            <div className="flex flex-col md:flex-row gap-4 items-center mb-4">
+              <div className="flex-1 w-full">
+                <select
+                  value={selectedModel}
+                  onChange={e => setSelectedModel(e.target.value)}
+                  className="w-full select-modern mb-2"
+                >
+                  {availableModels.map((model) => (
+                    <option key={model} value={model}>{model}</option>
+                  ))}
+                </select>
+              </div>
+              <Button 
+                onClick={generateConclusion}
+                disabled={isGeneratingConclusion}
+                className="w-full md:w-auto btn-primary shadow-lg transition-colors duration-200"
+                size="lg"
+                variant="default"
+              >
+                {isGeneratingConclusion ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full border-b-2 border-white h-4 w-4 mr-2"></div>
+                    <span>Generating synthesis...</span>
+                  </div>
+                ) : (
+                  `Generate synthesis from ${generatedAnswers.size} perspectives`
+                )}
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}

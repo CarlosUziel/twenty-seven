@@ -8,10 +8,11 @@ from pydantic import BaseModel
 
 
 class QuestionRequest(BaseModel):
-    """Request model for submitting a philosophical question and optional perspective."""
+    """Request model for submitting a philosophical question and optional perspective and model."""
 
     question: str
     perspective: Optional[str] = None
+    model: Optional[str] = None
 
 
 class AnswerMetadata(BaseModel):
@@ -33,12 +34,23 @@ class AnswerResponse(BaseModel):
 
 
 class ConclusionRequest(BaseModel):
-    """Request model for submitting multiple answers for conclusion generation."""
+    """Request model for submitting multiple answers for conclusion generation, with optional model."""
 
     answers: Dict[str, str]
+    model: Optional[str] = None
+
+
+class ConclusionMetadata(BaseModel):
+    generationTime: str  # ISO string
+    model: str
+    outputTokens: int
+    temperature: float
+    promptUUID: str
+    extra: dict = {}
 
 
 class ConclusionResponse(BaseModel):
-    """Response model containing the generated conclusion."""
+    """Response model containing the generated conclusion and metadata."""
 
     conclusion: str
+    metadata: ConclusionMetadata

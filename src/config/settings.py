@@ -9,15 +9,11 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    """App settings."""
+    """App settings. (Note: 'llm_model' is deprecated; use 'available_models' and pass model name via API request)"""
 
     lm_studio_endpoint: str = Field(
         default="http://localhost:1234/v1",
         description="Base URL for the local LLM API endpoint.",
-    )
-    llm_model: str = Field(
-        default="deepseek/deepseek-r1-0528-qwen3-8b",
-        description="Model name for the LLM.",
     )
     perspectives_dir: str = Field(
         default=str(
@@ -30,6 +26,14 @@ class Settings(BaseSettings):
     )
     max_words_conclusion: int = Field(
         default=256, description="Maximum number of words for a generated conclusion."
+    )
+    available_models: list[str] = Field(
+        default=[
+            "deepseek/deepseek-r1-0528-qwen3-8b",
+            "mistralai/mistral-small-3.2",
+            "mistralai/magistral-small",
+        ],
+        description="List of available LLM model names.",
     )
 
 
