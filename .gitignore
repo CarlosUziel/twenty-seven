@@ -209,3 +209,10 @@ __marimo__/
 # Data
 .data
 .logs
+
+# Ignore node modules and frontend build artifacts
+/frontend/node_modules/
+/frontend/.next/
+/frontend/out/
+/frontend/.env*
+/frontend/.DS_Store
