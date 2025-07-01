@@ -6,8 +6,8 @@ from typing import Dict
 
 from fastapi import APIRouter, HTTPException
 
-from app.utils import get_perspectives
-from config.logger import logger
+from twentyseven.app.utils import get_perspectives
+from twentyseven.config.logger import logger
 
 router = APIRouter(prefix="/perspectives", tags=["perspectives"])
 

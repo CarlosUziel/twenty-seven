@@ -5,8 +5,8 @@ Utility functions for the API application.
 from pathlib import Path
 from typing import Dict
 
-from config.logger import logger
-from config.settings import settings
+from twentyseven.config.logger import logger
+from twentyseven.config.settings import settings
 
 
 def get_perspectives() -> Dict[str, str]:

@@ -10,9 +10,9 @@ from uuid import uuid4
 
 import requests
 
-from app.models import AnswerMetadata, ConclusionMetadata
-from config.logger import logger
-from config.settings import settings
+from twentyseven.app.models import AnswerMetadata, ConclusionMetadata
+from twentyseven.config.logger import logger
+from twentyseven.config.settings import settings
 
 T = TypeVar("T")
 

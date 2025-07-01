@@ -5,8 +5,18 @@ Application settings management.
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def get_project_root() -> Path:
+    """Get the project root directory by looking for pyproject.toml."""
+    current_path = Path(__file__).resolve()
+    for parent in current_path.parents:
+        if (parent / "pyproject.toml").exists():
+            return parent
+    # Fallback to the directory three levels up from this file
+    return Path(__file__).parent.parent.parent
 
 
 class Settings(BaseSettings):
@@ -21,11 +31,23 @@ class Settings(BaseSettings):
         description="Base URL for OpenRouter API endpoint.",
     )
     perspectives_dir: str = Field(
-        default=str(
-            Path(__file__).parent.parent.parent / ".data/how_to_live__sivers/summaries"
-        ),
-        description="Directory containing philosophical perspective summaries.",
+        default=".data/how_to_live__sivers/summaries",
+        description="Directory containing philosophical perspective summaries (relative to project root).",
     )
+
+    @field_validator("perspectives_dir")
+    @classmethod
+    def resolve_perspectives_dir(cls, v: str) -> str:
+        """Resolve perspectives_dir to be absolute path from project root."""
+        path = Path(v)
+        if path.is_absolute():
+            return str(path)
+
+        # If relative, resolve from project root
+        project_root = get_project_root()
+        resolved_path = project_root / path
+        return str(resolved_path)
+
     max_words_answer: int = Field(
         default=512, description="Maximum number of words for a generated answer."
     )
@@ -60,7 +82,7 @@ class Settings(BaseSettings):
 
         from dotenv import load_dotenv
 
-        load_dotenv(str(Path(__file__).parent.parent.parent / ".env"))
+        load_dotenv(str(get_project_root() / ".env"))
 
         or_models_str = os.getenv("OPENROUTER_MODELS")
         if or_models_str:
@@ -73,7 +95,7 @@ class Settings(BaseSettings):
         return models
 
     model_config = SettingsConfigDict(
-        env_file=str(Path(__file__).parent.parent.parent / ".env"),
+        env_file=str(get_project_root() / ".env"),
         env_file_encoding="utf-8",
         extra="ignore",
     )

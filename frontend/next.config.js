@@ -2,12 +2,20 @@
 const nextConfig = {
   // API rewrites to proxy backend requests
   async rewrites() {
+    // Use environment variable for backend URL, default to localhost for development
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:8000';
+    
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:8000/api/:path*',
+        destination: `${backendUrl}/api/:path*`,
       },
     ];
+  },
+  
+  // Expose BACKEND_URL to the client and server
+  env: {
+    BACKEND_URL: process.env.BACKEND_URL || 'http://localhost:8000',
   },
   
   // Optimize fonts to prevent fetch issues

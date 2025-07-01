@@ -5,7 +5,7 @@ API router for system health and configuration checks.
 import requests
 from fastapi import APIRouter
 
-from config.settings import settings
+from twentyseven.config.settings import settings
 
 router = APIRouter(prefix="/system", tags=["system"])
 

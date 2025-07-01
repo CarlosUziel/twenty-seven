@@ -4,14 +4,14 @@ API router for generating answers and conclusions using language models.
 
 from fastapi import APIRouter, HTTPException
 
-from app.models import (
+from twentyseven.app.models import (
     AnswerResponse,
     ConclusionRequest,
     ConclusionResponse,
     QuestionRequest,
 )
-from config.logger import logger
-from lm.utils import generate_answer, generate_conclusion
+from twentyseven.config.logger import logger
+from twentyseven.lm.utils import generate_answer, generate_conclusion
 
 router = APIRouter(prefix="/generator", tags=["generator"])
 

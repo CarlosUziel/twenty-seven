@@ -6,8 +6,8 @@ from typing import List
 
 from fastapi import APIRouter, HTTPException
 
-from config.logger import logger
-from config.settings import settings
+from twentyseven.config.logger import logger
+from twentyseven.config.settings import settings
 
 router = APIRouter(prefix="/models", tags=["models"])
 
