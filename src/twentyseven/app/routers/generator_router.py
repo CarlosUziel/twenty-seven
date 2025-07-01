@@ -16,7 +16,8 @@ from twentyseven.lm.utils import generate_answer, generate_conclusion
 router = APIRouter(prefix="/generator", tags=["generator"])
 
 
-def get_answer(req: QuestionRequest) -> AnswerResponse:
+@router.post("/answer", response_model=AnswerResponse)
+def post_answer(req: QuestionRequest) -> AnswerResponse:
     """
     Generate an answer to a philosophical question from a given perspective and model.
 
@@ -43,7 +44,8 @@ def get_answer(req: QuestionRequest) -> AnswerResponse:
         raise HTTPException(status_code=500, detail="Error generating answer.") from exc
 
 
-def get_conclusion(req: ConclusionRequest) -> ConclusionResponse:
+@router.post("/conclusion", response_model=ConclusionResponse)
+def post_conclusion(req: ConclusionRequest) -> ConclusionResponse:
     """
     Generate a conclusion based on multiple answers and a model.
 
@@ -64,15 +66,3 @@ def get_conclusion(req: ConclusionRequest) -> ConclusionResponse:
         raise HTTPException(
             status_code=500, detail="Error generating conclusion."
         ) from exc
-
-
-@router.post("/answer", response_model=AnswerResponse)
-def post_answer(req: QuestionRequest) -> AnswerResponse:
-    """FastAPI endpoint for generating an answer."""
-    return get_answer(req)
-
-
-@router.post("/conclusion", response_model=ConclusionResponse)
-def post_conclusion(req: ConclusionRequest) -> ConclusionResponse:
-    """FastAPI endpoint for generating a conclusion."""
-    return get_conclusion(req)

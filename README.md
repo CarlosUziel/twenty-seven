@@ -73,7 +73,7 @@ Before you begin, ensure you have the following installed:
 1. **Clone the repository**:
 
    ```bash
-   git clone https://github.com/uziel/twenty-seven.git
+   git clone https://github.com/carlosuziel/twenty-seven.git
    cd twenty-seven
    ```
 
@@ -126,7 +126,7 @@ And edit `.env` with your settings.
 
    ```bash
    # From project root
-   uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+   uv run uvicorn twentyseven.app.main:app --reload --host 0.0.0.0 --port 8000
    ```
 
 2. **Start the Frontend** (in a new terminal):
@@ -138,7 +138,7 @@ And edit `.env` with your settings.
 
 3. **Access the Application**:
    - Frontend: [http://localhost:3000](http://localhost:3000)
-   - Backend API: [http://localhost:8000](http://localhost:8000)
+   - Backend API: [http://localhost:8000/docs](http://localhost:8000/docs)
 
 #### Option 2: Using Docker Compose
 
@@ -156,7 +156,7 @@ And edit `.env` with your settings.
 
 3. **Access the Application**:
    - Frontend: [http://localhost:3000](http://localhost:3000)
-   - Backend API: [http://localhost:8000](http://localhost:8000)
+   - Backend API: [http://localhost:8000/docs](http://localhost:8000/docs)
 
 4. **Stop services** (when done):
 
@@ -405,7 +405,7 @@ GET /api/models/models?provider=local  # Get available models for provider
 
 ```bash
 # Start backend with hot reload
-uv run fastapi dev src/app/main.py --host 0.0.0.0 --port 8000
+uv run uvicorn twentyseven.app.main:app --reload --host 0.0.0.0 --port 8000
 
 # Run tests
 uv run pytest
