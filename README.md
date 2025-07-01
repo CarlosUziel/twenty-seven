@@ -505,47 +505,15 @@ twenty-seven/
 ├── pyproject.toml              # Python project configuration
 ├── uv.lock                     # Dependency lock file
 ├── docker-compose.yml          # Multi-service configuration
-├── .env.example               # Environment variables template
-├── .data/                     # Philosophical perspectives data
-│   └── how_to_live__sivers/
-│       ├── summaries/         # Perspective text files
-│       └── *.md              # Source materials
+├── docker/
+│   ├── backend/
+│   │   └── Dockerfile
+│   └── frontend/
+│       └── Dockerfile
 ├── src/                       # Backend source code
-│   ├── app/                   # FastAPI application
-│   │   ├── main.py           # Application entry point
-│   │   ├── models.py         # Pydantic data models
-│   │   ├── utils.py          # Utility functions
-│   │   └── routers/          # API route handlers
-│   │       ├── generator_router.py
-│   │       ├── perspectives_router.py
-│   │       ├── models_router.py
-│   │       └── system_router.py
-│   ├── config/               # Configuration management
-│   │   ├── settings.py       # Application settings
-│   │   └── logger.py         # Logging configuration
-│   └── lm/                   # Language model utilities
-│       └── utils.py          # LLM interaction functions
+│   └── twentyseven/
 ├── frontend/                  # Next.js frontend application
-│   ├── app/                  # App Router pages
-│   │   ├── layout.tsx        # Root layout
-│   │   ├── page.tsx          # Main application page
-│   │   └── globals.css       # Global styles
-│   ├── components/           # React components
-│   │   ├── ui/              # Reusable UI components
-│   │   └── *.tsx            # Feature components
-│   ├── lib/                 # Frontend utilities
-│   │   ├── api.ts           # API service layer
-│   │   ├── utils.ts         # Utility functions
-│   │   ├── examples.ts      # Sample questions
-│   │   └── perspectives.ts  # Perspective descriptions
-│   ├── package.json         # Node.js dependencies
-│   ├── next.config.js       # Next.js configuration
-│   ├── tailwind.config.js   # Tailwind CSS configuration
-│   └── tsconfig.json        # TypeScript configuration
 ├── notebooks/                # Jupyter notebooks for analysis
-│   └── eda.ipynb            # Exploratory data analysis
-└── docs/                    # Documentation assets
-    └── *.png               # Screenshots and diagrams
 ```
 
 <p align="right">(<a href="#top">back to top</a>)</p>
