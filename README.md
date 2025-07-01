@@ -43,7 +43,7 @@ A philosophical life advice application that provides wisdom from 27 different p
 
 ## 🧠 Motivation
 
-Life's big questions deserve thoughtful, multifaceted answers. The Council of the Twenty-Seven draws inspiration from Derek Sivers' book "How to Live" and transforms its 27 different philosophical approaches into an interactive AI-powered application.
+Life's big questions deserve thoughtful, multifaceted answers. The Council of the Twenty-Seven draws inspiration from Derek Sivers' ([sive.rs](https://sive.rs/)) book "How to Live" and transforms its 27 different philosophical approaches into an interactive AI-powered application.
 
 This project provides:
 
@@ -98,15 +98,22 @@ Before you begin, ensure you have the following installed:
    cd frontend && npm install
    ```
 
-4. **Extract perspectives summaries from the original source material**:
+4. **Set up the philosophical perspectives**:
 
-    Convert the book's PDF file to text and extract summaries, for example via:
+   This application is designed to work with the 27 perspectives from Derek Sivers' book "How to Live". You will need to provide your own copy of the book's content.
 
+   Alternatively, you can define your own perspectives. Simply create a directory and add each perspective summary as a separate `.txt` file.
+
+   Once you have your perspectives:
+    - If using "How to Live", you can use the `notebooks/eda.ipynb` to help you extract the summaries.
+    - Place the final `.txt` summary files in a directory (e.g., `.data/my_perspectives`).
+    - Update the `PERSPECTIVES_DIR` variable in your `.env` file to point to this directory.
+
+    For example, if you have a PDF of "How to Live", you could start by converting it to Markdown:
     ```bash
     markitdown .data/Sivers-How_to_Live.pdf > .data/Sivers-How_to_Live.md 
     ```
-
-   Then follow along the notebook `notebooks/eda.ipynb` to extract and summarise the perspectives from the original source material. This will generate the necessary perspective summaries in `.data/how_to_live__sivers/summaries/`.
+    Then, use the notebook to process this file and generate the summaries.
 
 ### Configuration
 
