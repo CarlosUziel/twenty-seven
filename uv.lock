@@ -3784,9 +3784,9 @@ wheels = [
 ]
 
 [[package]]
-name = "twenty-seven"
+name = "twentyseven"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "black" },
     { name = "docling" },
