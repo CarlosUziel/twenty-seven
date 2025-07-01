@@ -12,6 +12,10 @@ interface ExportPanelProps {
   setExportFormat: (format: string) => void;
 }
 
+/**
+ * Panel for exporting generated answers and conclusion in various formats.
+ * @param {ExportPanelProps} props
+ */
 export const ExportPanel: React.FC<ExportPanelProps> = ({
   question,
   generatedAnswers,

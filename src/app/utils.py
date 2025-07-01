@@ -3,22 +3,21 @@ Utility functions for the API application.
 """
 
 from pathlib import Path
-from typing import List
+from typing import Dict
 
 from config.logger import logger
 from config.settings import settings
 
 
-def get_perspectives() -> List[str]:
+def get_perspectives() -> Dict[str, str]:
     """
-    Get the available philosophical perspectives from the configured directory.
+    Get the available philosophical perspectives and their summaries from the configured directory.
 
-    The function reads the filenames from the directory specified in the
-    `perspectives_dir` setting, expecting files with a `.txt` extension that
-    contain "summary" in their names. It formats the filenames into titles.
+    Reads all .txt files in the perspectives_dir, using the filename (without extension) as the perspective name
+    and the file content as the summary.
 
     Returns:
-        List[str]: A sorted list of formatted perspective names.
+        Dict[str, str]: A dictionary mapping perspective names (title-cased) to their summaries.
 
     Raises:
         FileNotFoundError: If the perspectives directory does not exist.
@@ -27,7 +26,15 @@ def get_perspectives() -> List[str]:
     if not perspectives_dir.exists():
         logger.error(f"Perspectives directory not found: {perspectives_dir}")
         raise FileNotFoundError(f"Directory not found: {perspectives_dir}")
-    perspectives = [f.stem for f in perspectives_dir.glob("*.txt") if f.is_file()]
+    perspectives = {}
+    for f in perspectives_dir.glob("*.txt"):
+        if f.is_file():
+            name = f.stem.replace("_", " ").title()
+            try:
+                summary = f.read_text(encoding="utf-8").strip()
+            except (IOError, OSError, UnicodeDecodeError) as e:
+                logger.error(f"Failed to read summary for {name}: {e}")
+                summary = "No summary available."
+            perspectives[name] = summary
     logger.info(f"Loaded {len(perspectives)} perspectives.")
-    formatted = [p.replace("_", " ").title() for p in perspectives]
-    return sorted(formatted)
+    return dict(sorted(perspectives.items()))

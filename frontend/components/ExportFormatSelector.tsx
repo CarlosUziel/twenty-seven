@@ -1,5 +1,10 @@
 import React from 'react';
 
+/**
+ * Dropdown selector for export format (Markdown, Text, HTML).
+ * @param {ExportFormatSelectorProps} props
+ */
+
 interface ExportFormatSelectorProps {
   selectedFormat: string;
   onChange: (format: string) => void;

@@ -6,6 +6,11 @@ interface AskAnotherQuestionButtonProps {
   className?: string;
 }
 
+/**
+ * Button to trigger a new random example question.
+ * @param {AskAnotherQuestionButtonProps} props
+ */
+
 export const AskAnotherQuestionButton: React.FC<AskAnotherQuestionButtonProps> = ({ onClick, className }) => (
   <button
     onClick={onClick}

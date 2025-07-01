@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * Main application page for The Council of the Twenty-Seven.
+ * Handles question input, perspective selection, answer generation, synthesis, and export.
+ */
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,18 +12,19 @@ import { Textarea } from '@/components/ui/input';
 import { LoadingSpinner, ErrorMessage } from '@/components/ui/loading';
 import { apiService, type AnswerResponse } from '@/lib/api';
 import { getRandomExample, exampleQuestions } from '@/lib/examples';
-import { getPerspectiveDescription } from '@/lib/perspectives';
 import { Brain, Sparkles, BookOpen, Users, MessageCircle, Lightbulb, Shuffle, HelpCircle, ChevronDown, ChevronUp, Plus, X, Download } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import React from 'react';
 import { ExportPanel } from '@/components/ExportPanel';
 import { AskAnotherQuestionButton } from '@/components/AskAnotherQuestionButton';
+import { ProviderSelector } from '@/components/ProviderSelector';
 
 export default function Home() {
   const [question, setQuestion] = useState('');
   const [isQuestionSubmitted, setIsQuestionSubmitted] = useState(false);
   const [isQuestionBarOpen, setIsQuestionBarOpen] = useState(false);
-  const [perspectives, setPerspectives] = useState<string[]>([]);
+  const [perspectives, setPerspectives] = useState<Record<string, string>>({});
+  const [perspectiveNames, setPerspectiveNames] = useState<string[]>([]);
   const [selectedPerspective, setSelectedPerspective] = useState<string>('');
   const [generatedAnswers, setGeneratedAnswers] = useState<Map<string, AnswerResponse>>(new Map());
   const [activeTab, setActiveTab] = useState<string>('');
@@ -30,18 +36,60 @@ export default function Home() {
   const [exportFormat, setExportFormat] = useState('markdown');
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>('');
+  const [providers, setProviders] = useState<string[]>(['local', 'openrouter']);
+  const [selectedProvider, setSelectedProvider] = useState<string>('local');
+  const [providerAvailability, setProviderAvailability] = useState<{[key: string]: boolean}>({});
 
   useEffect(() => {
     loadPerspectives();
-    loadModels();
   }, []);
 
   useEffect(() => {
+    if (selectedProvider) {
+      // Use standardized apiService for model fetching
+      apiService.getModels(selectedProvider)
+        .then((models) => {
+          setAvailableModels(models);
+          if (models.length > 0) setSelectedModel(models[0]);
+        })
+        .catch((error) => {
+          console.error(`Failed to fetch models for provider ${selectedProvider}:`, error);
+          setError(`Failed to fetch models for provider ${selectedProvider}.`);
+        });
+    }
+  }, [selectedProvider]);
+
+  useEffect(() => {
     // Set first perspective as default when perspectives load
-    if (perspectives.length > 0 && !selectedPerspective) {
-      setSelectedPerspective(perspectives[0]);
+    const names = Object.keys(perspectives);
+    setPerspectiveNames(names);
+    if (names.length > 0 && !selectedPerspective) {
+      setSelectedPerspective(names[0]);
     }
   }, [perspectives, selectedPerspective]);
+
+  // Check provider availability on mount
+  useEffect(() => {
+    const checkProviders = async () => {
+      const available: {[key: string]: boolean} = {};
+      try {
+        // Use standardized apiService for health checks
+        const localData = await apiService.checkLocalInstance();
+        available['local'] = !!localData.available;
+      } catch { available['local'] = false; }
+      try {
+        const keysData = await apiService.checkApiKeys();
+        available['openrouter'] = !!keysData.openrouter;
+      } catch {
+        available['openrouter'] = false;
+      }
+      setProviderAvailability(available);
+      const filtered = ['local', 'openrouter'].filter(p => available[p]);
+      setProviders(filtered);
+      if (filtered.length > 0) setSelectedProvider(filtered[0]);
+    };
+    checkProviders();
+  }, []);
 
   const loadPerspectives = async () => {
     setIsLoadingPerspectives(true);
@@ -57,17 +105,8 @@ export default function Home() {
     }
   };
 
-  const loadModels = async () => {
-    // Fetch from backend endpoint (to be implemented if not present)
-    try {
-      const res = await fetch('/api/models');
-      const data = await res.json();
-      setAvailableModels(data);
-      if (data.length > 0) setSelectedModel(data[0]);
-    } catch (e) {
-      setAvailableModels(["deepseek/deepseek-r1-0528-qwen3-8b"]);
-      setSelectedModel("deepseek/deepseek-r1-0528-qwen3-8b");
-    }
+  const handleProviderChange = (provider: string) => {
+    setSelectedProvider(provider);
   };
 
   const handleSubmitQuestion = () => {
@@ -126,7 +165,7 @@ export default function Home() {
     setQuestion('');
     setIsQuestionSubmitted(false);
     setIsQuestionBarOpen(false);
-    setSelectedPerspective(perspectives.length > 0 ? perspectives[0] : '');
+    setSelectedPerspective(perspectiveNames.length > 0 ? perspectiveNames[0] : '');
     setGeneratedAnswers(new Map());
     setActiveTab('');
     setConclusion('');
@@ -202,7 +241,7 @@ export default function Home() {
             message={error} 
             onRetry={() => {
               setError(null);
-              if (perspectives.length === 0) {
+              if (Object.keys(perspectives).length === 0) {
                 loadPerspectives();
               }
             }} 
@@ -224,7 +263,7 @@ export default function Home() {
         <Card className="mb-8 shadow-xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <MessageCircle className="h-6 w-6 text-primary" />
+              <MessageCircle className="h-6 w-6 text-accent" />
               What life question would you like to explore?
             </CardTitle>
           </CardHeader>
@@ -237,6 +276,10 @@ export default function Home() {
             />
             {/* Question Suggestions */}
             <div className="mb-4">
+              <div className="text-sm text-gray-600 mb-2 flex items-center gap-2">
+                <Lightbulb className="h-4 w-4 text-gray-500" />
+                <span className="text-sm font-medium text-gray-700">For the most helpful answers, please add as many details as possible about your situation, context, and what matters to you.</span>
+              </div>
               <div className="flex items-center gap-2 mb-3">
                 <HelpCircle className="h-4 w-4 text-gray-500" />
                 <span className="text-sm font-medium text-gray-700">Need inspiration? Try one of these:</span>
@@ -326,31 +369,44 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-col md:flex-row gap-4 items-center mb-4">
-              <div className="flex-1 w-full">
+              <div className="flex-1 w-full relative">
                 <select 
                   value={selectedPerspective}
                   onChange={(e) => setSelectedPerspective(e.target.value)}
-                  className="w-full rounded-lg border-none shadow-md bg-background text-foreground px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent transition-colors duration-200 appearance-none cursor-pointer hover:bg-primary/5 mb-2"
+                  className="w-full rounded-lg border-none shadow-md bg-background text-foreground px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent transition-colors duration-200 appearance-none cursor-pointer hover:bg-primary/5 mb-2 pr-10"
+                  style={{ appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none' }}
                 >
-                  {perspectives.map((perspective) => (
+                  {perspectiveNames.map((perspective) => (
                     <option key={perspective} value={perspective}>{perspective}</option>
                   ))}
                 </select>
+                {/* Down arrow icon for dropdown */}
+                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
               </div>
+            </div>
+            {/* Perspective Description (summary) */}
+            {selectedPerspective && (
+              <div className="p-4 bg-gray-50 rounded-lg mt-4 mb-4">
+                <span className="text-sm text-gray-700 font-medium text-justify block">{perspectives[selectedPerspective] || "A unique philosophical approach to life and decision-making"}</span>
+              </div>
+            )}
+            {/* Provider and Model selection and Generate button below summary */}
+            <div className="flex flex-col md:flex-row gap-4 items-center">
               <div className="flex-1 w-full">
-                <select
-                  value={selectedModel}
-                  onChange={e => setSelectedModel(e.target.value)}
-                  className="w-full select-modern mb-2"
-                >
-                  {availableModels.map((model) => (
-                    <option key={model} value={model}>{model}</option>
-                  ))}
-                </select>
+                <ProviderSelector
+                  selectedProvider={selectedProvider}
+                  onProviderChange={handleProviderChange}
+                  selectedModel={selectedModel}
+                  onModelChange={setSelectedModel}
+                  providers={providers}
+                  availableModels={availableModels}
+                  disabled={isGeneratingAnswer}
+                  providerAvailability={providerAvailability}
+                />
               </div>
               <Button 
                 onClick={generateAnswer}
-                disabled={!selectedPerspective || isGeneratingAnswer}
+                disabled={!selectedPerspective || isGeneratingAnswer || !selectedModel}
                 className="w-full md:w-auto btn-primary shadow-lg transition-colors duration-200"
                 size="lg"
                 variant="default"
@@ -365,12 +421,6 @@ export default function Home() {
                 )}
               </Button>
             </div>
-            {/* Perspective Description (optional, can show below if needed) */}
-            {selectedPerspective && (
-              <div className="p-4 bg-gray-50 rounded-lg mt-4">
-                <span className="text-sm text-gray-700 font-medium">{getPerspectiveDescription(selectedPerspective)}</span>
-              </div>
-            )}
           </CardContent>
         </Card>
       )}
@@ -426,7 +476,7 @@ export default function Home() {
 
               {/* Tab Content */}
               {activeTab && generatedAnswers.has(activeTab) && (
-                <div className="prose prose-neutral dark:prose-invert max-w-none">
+                <div className="prose prose-neutral dark:prose-invert max-w-none text-justify">
                   <ReactMarkdown>
                     {generatedAnswers.get(activeTab)?.answer || ''}
                   </ReactMarkdown>
@@ -453,19 +503,20 @@ export default function Home() {
           <CardContent>
             <div className="flex flex-col md:flex-row gap-4 items-center mb-4">
               <div className="flex-1 w-full">
-                <select
-                  value={selectedModel}
-                  onChange={e => setSelectedModel(e.target.value)}
-                  className="w-full select-modern mb-2"
-                >
-                  {availableModels.map((model) => (
-                    <option key={model} value={model}>{model}</option>
-                  ))}
-                </select>
+                <ProviderSelector
+                  selectedProvider={selectedProvider}
+                  onProviderChange={handleProviderChange}
+                  selectedModel={selectedModel}
+                  onModelChange={setSelectedModel}
+                  providers={providers}
+                  availableModels={availableModels}
+                  disabled={isGeneratingConclusion}
+                  providerAvailability={providerAvailability}
+                />
               </div>
               <Button 
                 onClick={generateConclusion}
-                disabled={isGeneratingConclusion}
+                disabled={isGeneratingConclusion || !selectedModel}
                 className="w-full md:w-auto btn-primary shadow-lg transition-colors duration-200"
                 size="lg"
                 variant="default"
@@ -495,15 +546,15 @@ export default function Home() {
 
       {/* Conclusion Panel */}
       {conclusion && (
-        <Card className="mb-8 shadow-xl bg-gradient-to-br from-primary to-secondary">
+        <Card className="mb-8 shadow-xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Sparkles className="h-6 w-6 text-secondary" />
+              <Sparkles className="h-6 w-6 text-accent" />
               Philosophical Synthesis
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="prose max-w-none text-lg text-foreground bg-background rounded p-4 border border-secondary">
+            <div className="prose max-w-none text-lg text-foreground bg-background rounded p-4 border border-secondary text-justify">
               <ReactMarkdown>{conclusion}</ReactMarkdown>
             </div>
           </CardContent>

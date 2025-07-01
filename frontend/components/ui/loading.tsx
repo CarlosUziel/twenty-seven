@@ -1,5 +1,10 @@
 import React from 'react';
 
+/**
+ * Loading spinner component for indicating loading state.
+ * @param {LoadingSpinnerProps} props
+ */
+
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg';
   text?: string;
@@ -22,6 +27,11 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
     </div>
   );
 };
+
+/**
+ * Error message component for displaying errors and retry option.
+ * @param {ErrorMessageProps} props
+ */
 
 interface ErrorMessageProps {
   message: string;
